@@ -1,0 +1,2027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RideFair - Passenger App</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #00B894;
+    --green-light: #E8FAF6;
+    --green-mid: #C2F0E6;
+    --green-dark: #009678;
+    --orange: #FF6230;
+    --orange-light: #FFF1EC;
+    --bg: #F5F6FA;
+    --surface: #FFFFFF;
+    --surface2: #F0F2F8;
+    --border: #E4E7F0;
+    --border2: #D0D5E8;
+    --text: #12172B;
+    --text2: #5A6380;
+    --text3: #9BA3BE;
+    --red: #EF4444;
+    --red-light: #FEF2F2;
+    --amber: #F59E0B;
+    --blue: #3B82F6;
+    --font: 'Plus Jakarta Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+    --radius: 14px;
+    --radius-sm: 9px;
+    --shadow: 0 2px 12px rgba(0,80,60,0.07);
+    --shadow-md: 0 4px 24px rgba(0,80,60,0.11);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: linear-gradient(135deg, #E8FAF6 0%, #EEF0FA 50%, #FFF5F0 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: var(--font);
+    padding: 20px;
+  }
+
+  .phone {
+    width: 360px;
+    background: var(--surface);
+    border-radius: 38px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 24px 64px rgba(0,80,60,0.14), 0 4px 16px rgba(0,80,60,0.08);
+  }
+
+  .statusbar {
+    display: flex;
+    justify-content: space-between;
+    padding: 11px 22px 7px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--surface);
+    font-family: var(--mono);
+  }
+
+  .screen { display: none; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* ===== LOGO SVG ===== */
+  .logo-svg { display:inline-block; vertical-align:middle; }
+
+  /* ===== MAP AREAS ===== */
+  .maparea, .homemap, .optmap, .drivermap, .trackmap {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .map-bg {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(90deg, rgba(0,184,148,0.05) 1px, transparent 1px) 0 0 / 28px 28px,
+      linear-gradient(0deg, rgba(0,184,148,0.05) 1px, transparent 1px) 0 0 / 28px 28px,
+      linear-gradient(160deg, #E8FAF6 0%, #EAF0FA 60%, #F5F0FF 100%);
+  }
+
+  .road-h {
+    position: absolute;
+    height: 6px;
+    width: 100%;
+    background: rgba(255,255,255,0.8);
+    border-top: 1px solid rgba(0,184,148,0.12);
+    border-bottom: 1px solid rgba(0,184,148,0.12);
+  }
+
+  .road-v {
+    position: absolute;
+    width: 6px;
+    height: 100%;
+    background: rgba(255,255,255,0.8);
+    border-left: 1px solid rgba(0,184,148,0.12);
+    border-right: 1px solid rgba(0,184,148,0.12);
+  }
+
+  .mapcar {
+    position: absolute;
+    font-size: 20px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+    animation: carMove 5s linear infinite;
+  }
+
+  @keyframes carMove {
+    0%   { left: 5%;  top: 40%; opacity: 0; }
+    5%   { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { left: 90%; top: 20%; opacity: 0; }
+  }
+
+  .mapfade {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 110px;
+    background: linear-gradient(transparent, var(--surface));
+  }
+
+  .pinwrap {
+    position: absolute;
+    left: 50%; top: 48%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .pindot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 2.5px solid #fff;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0,184,148,0.4);
+  }
+
+  .pinring {
+    position: absolute;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: 2px solid rgba(0,184,148,0.35);
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    animation: ringPulse 2s ease-out infinite;
+  }
+
+  @keyframes ringPulse {
+    0%   { transform: translate(-50%,-50%) scale(0.4); opacity: 0.8; }
+    100% { transform: translate(-50%,-50%) scale(2.5); opacity: 0; }
+  }
+
+  /* ===== LOGIN SCREEN ===== */
+  #login { background: var(--surface); }
+
+  .maparea { height: 240px; }
+
+  .loginbody {
+    padding: 0 22px 28px;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+  }
+
+  .brandrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    margin-top: 2px;
+  }
+
+  .brandname {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+
+  .brandname span { color: var(--green); }
+
+  .logintitle {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+
+  .loginsub {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 22px;
+    font-weight: 500;
+  }
+
+  .phonerow {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .countrycode {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 13px;
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 700;
+    white-space: nowrap;
+    font-family: var(--mono);
+  }
+
+  .phoneinput {
+    flex: 1;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 13px;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    font-family: var(--font);
+    font-weight: 500;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .phoneinput:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(0,184,148,0.12);
+    background: var(--surface);
+  }
+
+  .phoneinput::placeholder { color: var(--text3); }
+
+  .otphint {
+    background: var(--green-light);
+    border: 1px solid var(--green-mid);
+    border-radius: var(--radius-sm);
+    padding: 9px 13px;
+    font-size: 12px;
+    color: var(--green-dark);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  .otpsenttext {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  .otpsenttext span { color: var(--text); font-weight: 700; }
+
+  .otpboxes {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .otpbox {
+    flex: 1;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 6px;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    text-align: center;
+    outline: none;
+    font-family: var(--mono);
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+
+  .otpbox:focus {
+    border-color: var(--green);
+    background: var(--surface);
+    box-shadow: 0 0 0 3px rgba(0,184,148,0.12);
+  }
+
+  .otpbox.filled { border-color: var(--green); background: var(--green-light); }
+  .otpbox.wrong  { border-color: var(--red); background: var(--red-light); }
+  .otpbox.right  { border-color: var(--green); background: var(--green-light); }
+
+  .resendtext {
+    font-size: 12px;
+    color: var(--text2);
+    text-align: center;
+    margin-top: 8px;
+    font-weight: 500;
+  }
+
+  .resendtext span { color: var(--green); cursor: pointer; font-weight: 700; }
+
+  .mainbtn {
+    width: 100%;
+    padding: 15px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--green);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: all 0.15s;
+    box-shadow: 0 4px 16px rgba(0,184,148,0.3);
+    letter-spacing: 0.01em;
+  }
+
+  .mainbtn:hover { background: var(--green-dark); box-shadow: 0 6px 20px rgba(0,184,148,0.35); }
+  .mainbtn:active { transform: scale(0.98); }
+
+  /* ===== HOME SCREEN ===== */
+  #home { background: var(--surface); }
+
+  .homemap { height: 225px; }
+
+  .homecar {
+    position: absolute;
+    font-size: 18px;
+    transition: left 0.9s ease, top 0.9s ease;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+  }
+
+  .driverchip {
+    position: absolute;
+    top: 12px; right: 12px;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid var(--green-mid);
+    border-radius: 20px;
+    padding: 5px 11px;
+    font-size: 11px;
+    color: var(--green-dark);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: var(--shadow);
+  }
+
+  .livedot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: blink 1.5s ease-in-out infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .loclabel {
+    position: absolute;
+    top: 12px; left: 12px;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 4px 9px;
+    font-size: 10px;
+    color: var(--text2);
+    font-weight: 600;
+    box-shadow: var(--shadow);
+  }
+
+  .homesheet {
+    background: var(--surface);
+    border-radius: 22px 22px 0 0;
+    padding: 5px 16px 18px;
+    flex: 1;
+    border-top: 1px solid var(--border);
+    margin-top: -10px;
+  }
+
+  .sheethandle {
+    width: 32px; height: 4px;
+    background: var(--border2);
+    border-radius: 2px;
+    margin: 9px auto 12px;
+  }
+
+  .wherebtn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 13px 14px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .wherebtn:hover {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(0,184,148,0.1);
+    background: var(--surface);
+  }
+
+  .wheredot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--green);
+  }
+
+  .wheretext { font-size: 13px; color: var(--text3); flex: 1; font-weight: 500; }
+
+  .quickrow {
+    display: flex;
+    gap: 7px;
+    margin-bottom: 14px;
+  }
+
+  .quickbtn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 8px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    transition: all 0.15s;
+  }
+
+  .quickbtn:hover { border-color: var(--green); color: var(--green); background: var(--green-light); }
+
+  .recenttitle {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+
+  .recentitem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .recentitem:last-child { border-bottom: none; }
+  .recentitem:hover { opacity: 0.65; }
+
+  .recenticon {
+    width: 34px; height: 34px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+  }
+
+  .recentname { font-size: 12px; font-weight: 700; color: var(--text); }
+  .recentdist { font-size: 10px; color: var(--text2); margin-top: 1px; font-weight: 500; }
+
+  .navbar {
+    display: flex;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 9px 0 16px;
+  }
+
+  .navitem {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    opacity: 0.35;
+    transition: opacity 0.2s;
+  }
+
+  .navitem.active { opacity: 1; }
+  .navicon { font-size: 17px; }
+  .navlabel { font-size: 9px; font-weight: 700; color: var(--text2); }
+  .navitem.active .navlabel { color: var(--green); }
+
+  /* ===== SEARCH SCREEN ===== */
+  #search { background: var(--bg); }
+
+  .searchtop {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px 0;
+  }
+
+  .backbtn {
+    font-size: 13px;
+    color: var(--green);
+    cursor: pointer;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .searchrow {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .searchrow:last-child { border-bottom: none; }
+
+  .searchdot { width: 9px; height: 9px; border-radius: 50%; }
+
+  .searchinput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 13px;
+    color: var(--text);
+    font-family: var(--font);
+    font-weight: 500;
+  }
+
+  .searchinput::placeholder { color: var(--text3); }
+
+  .resultslist { flex: 1; overflow-y: auto; padding: 12px 16px; }
+
+  .resultitem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .resultitem:last-child { border-bottom: none; }
+  .resultitem:hover { opacity: 0.65; }
+
+  .resulticon {
+    width: 38px; height: 38px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .resultname { font-size: 13px; font-weight: 700; color: var(--text); }
+  .resultaddr { font-size: 11px; color: var(--text2); margin-top: 1px; font-weight: 500; }
+
+  /* ===== OPTIONS SCREEN ===== */
+  #options { background: var(--surface); }
+
+  .optmap { height: 185px; }
+
+  .optback {
+    position: absolute;
+    top: 10px; left: 10px;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 5px 11px;
+    font-size: 11px;
+    color: var(--green);
+    cursor: pointer;
+    font-weight: 700;
+    box-shadow: var(--shadow);
+  }
+
+  .optsheet {
+    background: var(--surface);
+    border-radius: 22px 22px 0 0;
+    padding: 5px 16px 22px;
+    flex: 1;
+    overflow-y: auto;
+    border-top: 1px solid var(--border);
+    margin-top: -10px;
+  }
+
+  .routebar {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+    font-size: 12px;
+  }
+
+  .routefrom {
+    color: var(--text);
+    font-weight: 700;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .routearrow { color: var(--green); }
+
+  .routeto {
+    color: var(--text);
+    font-weight: 700;
+    flex: 1;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .routekm { font-size: 10px; color: var(--text2); font-family: var(--mono); font-weight: 500; }
+
+  .ridetypes {
+    display: flex;
+    gap: 7px;
+    margin-bottom: 12px;
+  }
+
+  .ridetype {
+    flex: 1;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .ridetype.selected {
+    border-color: var(--green);
+    background: var(--green-light);
+    box-shadow: 0 0 0 3px rgba(0,184,148,0.1);
+  }
+
+  .ridetypeicon { font-size: 20px; margin-bottom: 3px; }
+  .ridetypename { font-size: 11px; font-weight: 700; color: var(--text); }
+  .ridetypeprice { font-size: 13px; font-weight: 700; color: var(--green); margin-top: 2px; font-family: var(--mono); }
+  .ridetypesave { font-size: 9px; color: var(--amber); margin-top: 2px; font-weight: 600; }
+
+  .farecard {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+
+  .farerow {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+
+  .farerow:last-child { margin-bottom: 0; }
+
+  .faretotal {
+    display: flex;
+    justify-content: space-between;
+    font-size: 15px;
+    font-weight: 700;
+    border-top: 1px solid var(--border);
+    padding-top: 9px;
+    margin-top: 5px;
+    color: var(--text);
+  }
+
+  .faretotal span:last-child { color: var(--green); font-family: var(--mono); }
+
+  .minnote {
+    background: #FFFBEB;
+    border: 1px solid rgba(245,158,11,0.3);
+    border-radius: 7px;
+    padding: 7px 11px;
+    font-size: 11px;
+    color: var(--amber);
+    margin-bottom: 10px;
+    display: none;
+    font-weight: 600;
+  }
+
+  .nearbyrow {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: var(--text2);
+    font-weight: 500;
+  }
+
+  .nearbyrow strong { color: var(--text); font-weight: 700; }
+
+  /* ===== FINDING SCREEN ===== */
+  #finding {
+    background: var(--surface);
+    align-items: center;
+    justify-content: center;
+    padding: 28px 20px;
+    min-height: 500px;
+  }
+
+  .findanim {
+    position: relative;
+    width: 140px; height: 140px;
+    margin: 0 auto 24px;
+  }
+
+  .findring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1.5px solid var(--green);
+    opacity: 0;
+    animation: findRing 2.4s ease-out infinite;
+  }
+
+  .findring:nth-child(1) { inset: 32px; animation-delay: 0s; }
+  .findring:nth-child(2) { inset: 14px; animation-delay: 0.5s; }
+  .findring:nth-child(3) { inset: 0;    animation-delay: 1s; }
+
+  @keyframes findRing {
+    0%   { transform: scale(0.4); opacity: 0.6; }
+    100% { transform: scale(1);   opacity: 0; }
+  }
+
+  .findicon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+  }
+
+  .findtitle {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 5px;
+    letter-spacing: -0.3px;
+  }
+
+  .findsub {
+    font-size: 13px;
+    color: var(--text2);
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 500;
+  }
+
+  .finddots {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    margin-bottom: 28px;
+  }
+
+  .finddot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: dotBounce 0.9s ease-in-out infinite;
+  }
+
+  .finddot:nth-child(2) { animation-delay: 0.15s; }
+  .finddot:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes dotBounce {
+    0%,80%,100% { transform: scale(1); opacity: 0.3; }
+    40%          { transform: scale(1.4); opacity: 1; }
+  }
+
+  .findtrip {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 13px 14px;
+    margin-bottom: 24px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .findroute { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+  .findfare  { font-size: 17px; font-weight: 700; color: var(--green); font-family: var(--mono); }
+
+  .cancelbtn {
+    font-size: 13px;
+    color: var(--red);
+    cursor: pointer;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  /* ===== DRIVER FOUND ===== */
+  #driverfound { background: var(--surface); }
+
+  .drivermap { height: 185px; }
+
+  .etachip {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.93);
+    border: 1px solid var(--green-mid);
+    border-radius: 20px;
+    padding: 5px 13px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--green-dark);
+    white-space: nowrap;
+    box-shadow: var(--shadow);
+  }
+
+  .drivercaranim {
+    position: absolute;
+    font-size: 20px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+    animation: driverCar 4s linear infinite;
+  }
+
+  @keyframes driverCar {
+    0%   { left: 8%;  top: 64%; }
+    100% { left: 50%; top: 38%; }
+  }
+
+  .driversheet {
+    background: var(--surface);
+    border-radius: 22px 22px 0 0;
+    padding: 5px 16px 22px;
+    flex: 1;
+    overflow-y: auto;
+    border-top: 1px solid var(--border);
+    margin-top: -10px;
+  }
+
+  .drivercard {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 10px;
+  }
+
+  .driveravatar {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--green-light);
+    border: 2px solid var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    position: relative;
+  }
+
+  .onlinedot {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 2px solid var(--surface);
+  }
+
+  .drivername  { font-size: 15px; font-weight: 700; color: var(--text); }
+  .driverrating { font-size: 12px; color: var(--text2); margin-top: 2px; display: flex; align-items: center; gap: 5px; font-weight: 500; }
+
+  .vehiclebadge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text);
+    font-family: var(--mono);
+  }
+
+  .otpcard {
+    background: var(--green-light);
+    border: 1px solid var(--green-mid);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+
+  .otplabel { font-size: 11px; color: var(--green-dark); margin-bottom: 3px; font-weight: 600; }
+
+  .otpnumber {
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--green-dark);
+    font-family: var(--mono);
+    letter-spacing: 0.12em;
+  }
+
+  .etastrip {
+    display: flex;
+    gap: 7px;
+    margin-bottom: 10px;
+  }
+
+  .etabox {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    text-align: center;
+  }
+
+  .etavalue { font-size: 18px; font-weight: 700; color: var(--text); font-family: var(--mono); }
+  .etalabel { font-size: 9px; color: var(--text2); margin-top: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .contactrow {
+    display: flex;
+    gap: 7px;
+    margin-bottom: 10px;
+  }
+
+  .contactbtn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    transition: all 0.15s;
+    font-family: var(--font);
+  }
+
+  .contactbtn:hover { border-color: var(--green); color: var(--green); background: var(--green-light); }
+
+  /* ===== TRACKING SCREEN ===== */
+  #tracking { background: var(--surface); }
+
+  .trackmap {
+    flex: 1;
+    min-height: 270px;
+  }
+
+  .hud {
+    position: absolute;
+    top: 10px; left: 10px; right: 10px;
+    background: rgba(255,255,255,0.94);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 13px;
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(8px);
+  }
+
+  .hudtop {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 7px;
+  }
+
+  .hudstatus {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--green);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .hudid { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+
+  .hudstats { display: flex; gap: 16px; }
+  .hudstat { text-align: center; }
+  .hudstatval { font-size: 16px; font-weight: 700; color: var(--text); font-family: var(--mono); }
+  .hudstatlbl { font-size: 9px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .deviationbanner {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    background: rgba(239,68,68,0.97);
+    padding: 48px 14px 12px;
+    transform: translateY(-100%);
+    transition: transform 0.4s ease;
+  }
+
+  .deviationbanner.show { transform: translateY(0); }
+
+  .devtitle { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+  .devbody  { font-size: 11px; color: rgba(255,255,255,0.88); margin-bottom: 9px; font-weight: 500; }
+  .devbtns { display: flex; gap: 6px; }
+
+  .devbtn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 7px;
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font);
+  }
+
+  .devbtn-sos   { background: #fff; color: var(--red); }
+  .devbtn-share { background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+  .devbtn-dis   { background: transparent; color: rgba(255,255,255,0.65); border: 1px solid rgba(255,255,255,0.2); }
+
+  .trackingcar {
+    position: absolute;
+    font-size: 22px;
+    transition: left 0.6s ease, top 0.6s ease;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.2));
+  }
+
+  .trackbottom {
+    background: var(--surface);
+    border-radius: 22px 22px 0 0;
+    padding: 5px 16px 22px;
+    border-top: 1px solid var(--border);
+    margin-top: -10px;
+  }
+
+  .progressrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+    margin-bottom: 8px;
+  }
+
+  .progressstop { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+
+  .progressdot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--green);
+  }
+
+  .progressdot.on   { background: var(--green); }
+  .progressdot.dest { border-color: var(--orange); }
+  .progressdot.dest.on { background: var(--orange); }
+
+  .progresslabel { font-size: 9px; color: var(--text2); max-width: 60px; text-align: center; line-height: 1.2; font-weight: 600; }
+
+  .progressline {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 9px;
+  }
+
+  .progressfill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 2px;
+    transition: width 1s linear;
+  }
+
+  .sosbig {
+    width: 100%;
+    padding: 13px;
+    border-radius: var(--radius-sm);
+    background: var(--red-light);
+    border: 1.5px solid rgba(239,68,68,0.25);
+    color: var(--red);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    transition: all 0.2s;
+    font-family: var(--font);
+  }
+
+  .sosbig:hover  { background: #FEE2E2; border-color: var(--red); }
+  .sosbig:active { background: var(--red); color: #fff; }
+
+  /* ===== SOS SCREEN ===== */
+  #sos {
+    background: var(--surface);
+    padding: 18px 18px 26px;
+    overflow-y: auto;
+  }
+
+  .soscard {
+    background: var(--red-light);
+    border: 1px solid rgba(239,68,68,0.18);
+    border-radius: 18px;
+    padding: 26px 18px;
+    text-align: center;
+  }
+
+  .sosholdbutton {
+    width: 110px; height: 110px;
+    border-radius: 50%;
+    background: var(--red);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto 18px;
+    animation: sosRing 2s ease-out infinite;
+    transition: transform 0.15s;
+    font-family: var(--font);
+    box-shadow: 0 8px 24px rgba(239,68,68,0.35);
+  }
+
+  @keyframes sosRing {
+    0%   { box-shadow: 0 0 0 0 rgba(239,68,68,0.35), 0 8px 24px rgba(239,68,68,0.3); }
+    70%  { box-shadow: 0 0 0 16px rgba(239,68,68,0), 0 8px 24px rgba(239,68,68,0.3); }
+    100% { box-shadow: 0 0 0 0 rgba(239,68,68,0), 0 8px 24px rgba(239,68,68,0.3); }
+  }
+
+  .sosholdbutton:active { transform: scale(0.93); }
+  .sosholdlabel { font-size: 9px; color: #fff; font-weight: 700; margin-top: 3px; }
+
+  .sostitle { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 7px; letter-spacing: -0.3px; }
+  .sosdesc  { font-size: 12px; color: var(--text2); line-height: 1.7; margin-bottom: 16px; font-weight: 500; }
+
+  .eclist {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-bottom: 16px;
+    text-align: left;
+  }
+
+  .ecitem {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 13px;
+  }
+
+  .ecavatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .ecname { font-size: 12px; font-weight: 700; color: var(--text); }
+  .ecrel  { font-size: 10px; color: var(--text2); margin-top: 1px; font-weight: 500; }
+
+  .sharebtn {
+    width: 100%;
+    padding: 12px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 9px;
+    font-family: var(--font);
+    transition: border-color 0.15s;
+  }
+
+  .sharebtn:hover { border-color: var(--green); }
+
+  .backlink {
+    font-size: 12px;
+    color: var(--text2);
+    cursor: pointer;
+    text-align: center;
+    display: block;
+    font-weight: 600;
+  }
+
+  /* ===== TOAST ===== */
+  .toastwrap {
+    position: absolute;
+    bottom: 70px;
+    left: 14px; right: 14px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    pointer-events: none;
+  }
+
+  .toast {
+    background: var(--text);
+    border-radius: 11px;
+    padding: 10px 13px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 12px;
+    color: #fff;
+    font-weight: 600;
+    animation: toastIn 0.2s ease;
+    box-shadow: var(--shadow-md);
+  }
+
+  @keyframes toastIn {
+    from { transform: translateY(10px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="phone" id="app">
+
+  <!-- Toast container -->
+  <div class="toastwrap" id="toastContainer"></div>
+
+  <!-- Status Bar -->
+  <div class="statusbar">
+    <span id="clockEl">9:41</span>
+    <span>●●● 4G ▐</span>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 1: LOGIN
+  ============================================================ -->
+  <div class="screen active" id="login">
+    <div class="maparea">
+      <div class="map-bg"></div>
+      <div class="road-h" style="top:25%"></div>
+      <div class="road-h" style="top:55%"></div>
+      <div class="road-h" style="top:80%"></div>
+      <div class="road-v" style="left:22%"></div>
+      <div class="road-v" style="left:52%"></div>
+      <div class="road-v" style="left:78%"></div>
+      <div class="mapcar">🚕</div>
+      <div class="pinwrap">
+        <div class="pinring"></div>
+        <div class="pindot"></div>
+      </div>
+      <div class="mapfade"></div>
+    </div>
+    <div class="loginbody">
+      <div class="brandrow">
+        <!-- Inline SVG Logo -->
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+          <rect width="36" height="36" rx="10" fill="#00B894"/>
+          <!-- Road path -->
+          <path d="M7 26 Q12 20 18 18 Q24 16 29 10" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.4"/>
+          <!-- Car body -->
+          <rect x="13" y="17" width="14" height="8" rx="2.5" fill="white"/>
+          <!-- Car roof -->
+          <path d="M15 17 L16.5 13 Q18 11.5 19.5 11.5 L22 11.5 Q23.5 11.5 24 13 L25 17Z" fill="white"/>
+          <!-- Windshield -->
+          <path d="M16 17 L17 14 Q18 13 19.5 13 L21.5 13 Q23 13 23.5 14 L24.5 17Z" fill="#00B894" opacity="0.5"/>
+          <!-- Wheels -->
+          <circle cx="16" cy="25" r="2.5" fill="#00B894"/>
+          <circle cx="16" cy="25" r="1.2" fill="white"/>
+          <circle cx="24" cy="25" r="2.5" fill="#00B894"/>
+          <circle cx="24" cy="25" r="1.2" fill="white"/>
+          <!-- Checkmark badge -->
+          <circle cx="28" cy="8" r="5" fill="#FF6230"/>
+          <path d="M25.5 8 L27 9.5 L30.5 6.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="brandname">Ride<span>Fair</span></div>
+      </div>
+      <div class="logintitle">Your ride,<br>fairly priced.</div>
+      <div class="loginsub">Safe routes &bull; Honest fares &bull; Every time</div>
+
+      <!-- Phone number step -->
+      <div id="stepPhone">
+        <div class="phonerow">
+          <div class="countrycode">🇮🇳 +91</div>
+          <input
+            class="phoneinput"
+            id="phoneInput"
+            type="tel"
+            maxlength="10"
+            placeholder="10-digit mobile number"
+            oninput="this.value=this.value.replace(/\D/g,'')"
+            onkeydown="if(event.key==='Enter') sendOTP()"
+          />
+        </div>
+        <button class="mainbtn" onclick="sendOTP()">Send OTP &rarr;</button>
+        <p style="font-size:10px;color:var(--text3);text-align:center;margin-top:10px;font-weight:500;">
+          By continuing you agree to our Terms &amp; Privacy Policy
+        </p>
+      </div>
+
+      <!-- OTP step -->
+      <div id="stepOTP" style="display:none;">
+        <div class="otphint">
+          💡 Demo OTP: <strong>1 &nbsp; 2 &nbsp; 3 &nbsp; 4</strong>
+        </div>
+        <div class="otpsenttext">
+          OTP sent to +91 <span id="phoneDisplay"></span>
+        </div>
+        <div class="otpboxes">
+          <input class="otpbox" id="box1" type="tel" inputmode="numeric" maxlength="1"
+            oninput="otpInput(this,'box2')"
+            onkeydown="otpKey(event,this,null,'box2')" />
+          <input class="otpbox" id="box2" type="tel" inputmode="numeric" maxlength="1"
+            oninput="otpInput(this,'box3')"
+            onkeydown="otpKey(event,this,'box1','box3')" />
+          <input class="otpbox" id="box3" type="tel" inputmode="numeric" maxlength="1"
+            oninput="otpInput(this,'box4')"
+            onkeydown="otpKey(event,this,'box2','box4')" />
+          <input class="otpbox" id="box4" type="tel" inputmode="numeric" maxlength="1"
+            oninput="otpInput(this,null)"
+            onkeydown="otpKey(event,this,'box3',null)" />
+        </div>
+        <button class="mainbtn" onclick="verifyOTP()">Verify &amp; Continue &rarr;</button>
+        <div class="resendtext">
+          Didn&rsquo;t get it? <span onclick="resendOTP()">Resend OTP</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 2: HOME
+  ============================================================ -->
+  <div class="screen" id="home">
+    <div class="homemap">
+      <div class="map-bg"></div>
+      <div class="road-h" style="top:30%"></div>
+      <div class="road-h" style="top:65%"></div>
+      <div class="road-v" style="left:30%"></div>
+      <div class="road-v" style="left:65%"></div>
+      <div class="homecar" id="car1" style="left:10%;top:20%">🚕</div>
+      <div class="homecar" id="car2" style="left:60%;top:45%">🚗</div>
+      <div class="homecar" id="car3" style="left:75%;top:14%">🚕</div>
+      <div class="loclabel">📍 Koramangala, Bengaluru</div>
+      <div class="driverchip">
+        <div class="livedot"></div>
+        8 drivers nearby
+      </div>
+    </div>
+    <div class="homesheet">
+      <div class="sheethandle"></div>
+      <div class="wherebtn" onclick="goTo('search')">
+        <div class="wheredot"></div>
+        <span class="wheretext">Where are you going?</span>
+        <span style="font-size:15px;">🔍</span>
+      </div>
+      <div class="quickrow">
+        <div class="quickbtn" onclick="pickDest('MG Road, Bengaluru',5.2)">🏛 MG Road</div>
+        <div class="quickbtn" onclick="pickDest('Bangalore Airport',42)">✈ Airport</div>
+        <div class="quickbtn" onclick="pickDest('Whitefield, Bengaluru',18)">💼 Whitefield</div>
+      </div>
+      <div class="recenttitle">Recent &amp; Saved</div>
+      <div class="recentitem" onclick="pickDest('Indiranagar, Bengaluru',5.8)">
+        <div class="recenticon">🕐</div>
+        <div><div class="recentname">Indiranagar</div><div class="recentdist">5.8 km &middot; ~15 min</div></div>
+      </div>
+      <div class="recentitem" onclick="pickDest('Forum Mall, Koramangala',2.1)">
+        <div class="recenticon">⭐</div>
+        <div><div class="recentname">Forum Mall</div><div class="recentdist">2.1 km &middot; ~8 min</div></div>
+      </div>
+      <div class="recentitem" onclick="pickDest('HSR Layout, Bengaluru',4.8)">
+        <div class="recenticon">🏠</div>
+        <div><div class="recentname">HSR Layout</div><div class="recentdist">4.8 km &middot; ~16 min</div></div>
+      </div>
+    </div>
+    <div class="navbar">
+      <div class="navitem active"><div class="navicon">🏠</div><div class="navlabel">Home</div></div>
+      <div class="navitem" onclick="showToast('Activity coming soon','📋')"><div class="navicon">📋</div><div class="navlabel">Activity</div></div>
+      <div class="navitem" onclick="showToast('Rewards coming soon','🎁')"><div class="navicon">🎁</div><div class="navlabel">Rewards</div></div>
+      <div class="navitem" onclick="showToast('Profile coming soon','👤')"><div class="navicon">👤</div><div class="navlabel">Account</div></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 3: SEARCH
+  ============================================================ -->
+  <div class="screen" id="search">
+    <div class="searchtop">
+      <div class="backbtn" onclick="goTo('home')">← Back</div>
+      <div class="searchrow">
+        <div class="searchdot" style="background:var(--green);"></div>
+        <input class="searchinput" value="Koramangala, Bengaluru" readonly style="color:var(--text2);" />
+      </div>
+      <div class="searchrow">
+        <div class="searchdot" style="background:var(--orange); transform:rotate(45deg); border-radius:2px; width:8px; height:8px;"></div>
+        <input class="searchinput" id="destInput" placeholder="Search destination..."
+          oninput="filterPlaces(this.value)" />
+      </div>
+    </div>
+    <div class="resultslist" id="resultsList"></div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 4: RIDE OPTIONS
+  ============================================================ -->
+  <div class="screen" id="options">
+    <div class="optmap">
+      <div class="map-bg"></div>
+      <div class="road-h" style="top:35%"></div>
+      <div class="road-h" style="top:70%"></div>
+      <div class="road-v" style="left:30%"></div>
+      <div class="road-v" style="left:70%"></div>
+      <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 360 185">
+        <path d="M46 162 Q110 96 174 104 Q238 112 308 50"
+          stroke="var(--green)" stroke-width="2.5" fill="none" stroke-dasharray="7 4" opacity="0.7"/>
+        <circle cx="46"  cy="162" r="6" fill="var(--green)"/>
+        <circle cx="46"  cy="162" r="3" fill="white"/>
+        <circle cx="308" cy="50"  r="6" fill="var(--orange)"/>
+        <circle cx="308" cy="50"  r="3" fill="white"/>
+      </svg>
+      <div class="optback" onclick="goTo('search')">← Back</div>
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);
+        background:rgba(255,255,255,0.92);border:1px solid var(--border);border-radius:18px;
+        padding:4px 12px;font-size:10px;color:var(--text2);font-weight:600;box-shadow:var(--shadow);">
+        Route &middot; <span id="routeKmLabel" style="color:var(--green);font-weight:700;">– km</span>
+      </div>
+    </div>
+    <div class="optsheet">
+      <div class="sheethandle"></div>
+      <div class="routebar">
+        <span class="routefrom" id="routeFrom">Koramangala</span>
+        <span class="routearrow">→</span>
+        <span class="routeto" id="routeTo">Destination</span>
+        <span class="routekm" id="routeKm">– km</span>
+      </div>
+      <div class="ridetypes">
+        <div class="ridetype selected" onclick="selectType(this,'std')">
+          <div class="ridetypeicon">🚗</div>
+          <div class="ridetypename">Standard</div>
+          <div class="ridetypeprice" id="priceStd">₹–</div>
+        </div>
+        <div class="ridetype" onclick="selectType(this,'pool')">
+          <div class="ridetypeicon">🚌</div>
+          <div class="ridetypename">Pool</div>
+          <div class="ridetypeprice" id="pricePool">₹–</div>
+          <div class="ridetypesave" id="poolSave">Save –</div>
+        </div>
+        <div class="ridetype" onclick="selectType(this,'sched')">
+          <div class="ridetypeicon">📅</div>
+          <div class="ridetypename">Schedule</div>
+          <div class="ridetypeprice" id="priceSched">₹–</div>
+          <div class="ridetypesave" style="color:var(--blue);font-weight:600;">10% off</div>
+        </div>
+      </div>
+      <div class="minnote" id="minFareNote">⚡ Short trip — min fare ₹30 applied</div>
+      <div class="farecard">
+        <div class="farerow"><span>Base fare</span><span>₹20</span></div>
+        <div class="farerow"><span id="distLabel">Distance</span><span id="fareDistVal">₹–</span></div>
+        <div class="farerow" id="modifierRow" style="display:none;">
+          <span id="modLabel">Modifier</span><span id="modVal">–</span>
+        </div>
+        <div class="faretotal"><span>Total estimate</span><span id="fareTotalVal">₹–</span></div>
+      </div>
+      <div class="nearbyrow">
+        <div class="livedot"></div>&nbsp;
+        <strong>3 drivers</strong>&nbsp;nearby &middot; avg 4 min away
+      </div>
+      <button class="mainbtn" onclick="confirmRide()">Confirm Ride →</button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 5: FINDING DRIVER
+  ============================================================ -->
+  <div class="screen" id="finding">
+    <div class="findanim">
+      <div class="findring"></div>
+      <div class="findring"></div>
+      <div class="findring"></div>
+      <div class="findicon">🔍</div>
+    </div>
+    <div class="findtitle">Finding your driver</div>
+    <div class="findsub" id="findSub">Matching nearby drivers…</div>
+    <div class="finddots">
+      <div class="finddot"></div>
+      <div class="finddot"></div>
+      <div class="finddot"></div>
+    </div>
+    <div class="findtrip">
+      <div class="findroute" id="findRoute">Koramangala → Destination</div>
+      <div class="findfare"  id="findFare">₹–</div>
+    </div>
+    <div class="cancelbtn" onclick="goTo('home'); showToast('Ride cancelled','❌')">
+      Cancel ride
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 6: DRIVER FOUND
+  ============================================================ -->
+  <div class="screen" id="driverfound">
+    <div class="drivermap">
+      <div class="map-bg"></div>
+      <div class="road-h" style="top:33%"></div>
+      <div class="road-h" style="top:68%"></div>
+      <div class="road-v" style="left:30%"></div>
+      <div class="road-v" style="left:70%"></div>
+      <div class="drivercaranim">🚕</div>
+      <div class="etachip">🕐 Driver arriving in <span id="etaMin">4</span> min</div>
+    </div>
+    <div class="driversheet">
+      <div class="sheethandle"></div>
+      <div class="drivercard">
+        <div class="driveravatar">
+          👨
+          <div class="onlinedot"></div>
+        </div>
+        <div style="flex:1;">
+          <div class="drivername">Ravi Kumar</div>
+          <div class="driverrating">
+            ⭐ 4.9 &nbsp;&middot;&nbsp; 248 trips &nbsp;
+            <span class="vehiclebadge">KA01 AB 1234</span>
+          </div>
+          <div style="font-size:10px;color:var(--text2);margin-top:3px;font-weight:500;">Silver Swift Dzire</div>
+        </div>
+      </div>
+      <div class="otpcard">
+        <div class="otplabel">Your OTP — share only with driver</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="otpnumber">4872</div>
+          <span style="font-size:22px;">🔒</span>
+        </div>
+      </div>
+      <div class="etastrip">
+        <div class="etabox"><div class="etavalue" id="etaMin2">4</div><div class="etalabel">min away</div></div>
+        <div class="etabox"><div class="etavalue" id="etaDist">1.2</div><div class="etalabel">km away</div></div>
+        <div class="etabox"><div class="etavalue">₹<span id="etaFare">–</span></div><div class="etalabel">fare</div></div>
+      </div>
+      <div class="contactrow">
+        <button class="contactbtn" onclick="showToast('Calling Ravi Kumar…','📞')">📞 Call</button>
+        <button class="contactbtn" onclick="showToast('Message sent!','💬')">💬 Message</button>
+        <button class="contactbtn" onclick="goTo('sos')" style="color:var(--red);">🚨 SOS</button>
+      </div>
+      <button class="mainbtn" onclick="startTracking()">Start Tracking →</button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 7: TRACKING
+  ============================================================ -->
+  <div class="screen" id="tracking">
+    <div class="trackmap">
+      <!-- Deviation banner -->
+      <div class="deviationbanner" id="devBanner">
+        <div class="devtitle">⚠ Route Deviation Detected!</div>
+        <div class="devbody">Driver is 142m off the planned route. Tap SOS if you feel unsafe.</div>
+        <div class="devbtns">
+          <button class="devbtn devbtn-sos"   onclick="goTo('sos')">🚨 SOS</button>
+          <button class="devbtn devbtn-share" onclick="showToast('Location shared!','📍')">📍 Share</button>
+          <button class="devbtn devbtn-dis"   onclick="dismissDeviation()">Dismiss</button>
+        </div>
+      </div>
+      <!-- Map -->
+      <div class="map-bg"></div>
+      <div class="road-h" style="top:25%"></div>
+      <div class="road-h" style="top:50%"></div>
+      <div class="road-h" style="top:75%"></div>
+      <div class="road-v" style="left:24%"></div>
+      <div class="road-v" style="left:53%"></div>
+      <div class="road-v" style="left:82%"></div>
+      <!-- Route SVG -->
+      <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 360 300" id="trackSVG">
+        <path d="M180 268 Q188 200 218 158 Q248 116 272 66"
+          stroke="var(--green)" stroke-width="2.5" fill="none" stroke-dasharray="7 4" opacity="0.55"/>
+        <path id="actualPath" d="M180 268"
+          stroke="var(--green)" stroke-width="2.5" fill="none"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="180" cy="268" r="7" fill="var(--green)"/>
+        <circle cx="180" cy="268" r="4" fill="white"/>
+        <circle cx="272" cy="66"  r="7" fill="var(--orange)"/>
+        <circle cx="272" cy="66"  r="4" fill="white"/>
+      </svg>
+      <!-- Animated car -->
+      <div class="trackingcar" id="trackCar" style="left:47%;top:84%;">🚕</div>
+      <!-- HUD -->
+      <div class="hud">
+        <div class="hudtop">
+          <span class="hudstatus" id="hudStatus">● Ride in progress</span>
+          <span class="hudid">#RF4821</span>
+        </div>
+        <div class="hudstats">
+          <div class="hudstat"><div class="hudstatval" id="trackETA">12</div><div class="hudstatlbl">min ETA</div></div>
+          <div class="hudstat"><div class="hudstatval" id="trackKM">3.2</div><div class="hudstatlbl">km left</div></div>
+          <div class="hudstat"><div class="hudstatval" id="trackSpd">28</div><div class="hudstatlbl">km/h</div></div>
+          <div class="hudstat"><div class="hudstatval" id="trackFare">₹–</div><div class="hudstatlbl">fare</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="trackbottom">
+      <div class="sheethandle"></div>
+      <div class="progressrow">
+        <div class="progressstop">
+          <div class="progressdot on"></div>
+          <div class="progresslabel" id="progFrom">Koramangala</div>
+        </div>
+        <div class="progressline">
+          <div class="progressfill" id="progressFill" style="width:28%;"></div>
+        </div>
+        <div class="progressstop">
+          <div class="progressdot dest"></div>
+          <div class="progresslabel" id="progTo">Destination</div>
+        </div>
+      </div>
+      <div class="contactrow" style="margin-bottom:9px;">
+        <button class="contactbtn" onclick="showToast('Calling Ravi…','📞')">📞 Call Driver</button>
+        <button class="contactbtn" onclick="showToast('Location shared!','📍')">📍 Share Ride</button>
+      </div>
+      <button class="sosbig" onclick="goTo('sos')">🚨 Emergency SOS</button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 8: SOS
+  ============================================================ -->
+  <div class="screen" id="sos">
+    <div style="padding:12px 16px 0;">
+      <div class="backbtn" onclick="goTo('tracking')">← Back to ride</div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:0 16px 18px;">
+      <div class="soscard">
+        <button class="sosholdbutton"
+          onmousedown="startSOS()" ontouchstart="startSOS()"
+          onmouseup="stopSOS()"   ontouchend="stopSOS()">
+          🚨
+          <div class="sosholdlabel">Hold 3s</div>
+        </button>
+        <div class="sostitle">Emergency SOS</div>
+        <div class="sosdesc">
+          Hold the button for 3 seconds to instantly alert your
+          emergency contacts and Bengaluru Police with your live location.
+        </div>
+        <div class="eclist">
+          <div class="ecitem">
+            <div class="ecavatar">👦</div>
+            <div>
+              <div class="ecname">Rahul Sharma</div>
+              <div class="ecrel">Brother &middot; +91 98765 43211</div>
+            </div>
+          </div>
+          <div class="ecitem">
+            <div class="ecavatar">👩</div>
+            <div>
+              <div class="ecname">Priya Sharma</div>
+              <div class="ecrel">Mother &middot; +91 98765 43212</div>
+            </div>
+          </div>
+        </div>
+        <button class="sharebtn" onclick="showToast('Live location link copied!','📍')">
+          📍 Share Live Location Now
+        </button>
+        <span class="backlink" onclick="goTo('tracking')">Back to ride tracking</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /phone -->
+
+<script>
+
+/* SCREEN NAVIGATION */
+function goTo(id) {
+  var screens = document.querySelectorAll('.screen');
+  for (var i = 0; i < screens.length; i++) { screens[i].classList.remove('active'); }
+  document.getElementById(id).classList.add('active');
+}
+
+/* CLOCK */
+function updateClock() {
+  var d = new Date();
+  var h = d.getHours();
+  var m = d.getMinutes();
+  document.getElementById('clockEl').textContent = h + ':' + (m < 10 ? '0' : '') + m;
+}
+updateClock();
+setInterval(updateClock, 30000);
+
+/* TOAST */
+function showToast(msg, icon, duration) {
+  duration = duration || 3000;
+  var container = document.getElementById('toastContainer');
+  var t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = '<span style="font-size:15px;flex-shrink:0;">' + (icon || 'i') + '</span><span>' + msg + '</span>';
+  container.appendChild(t);
+  setTimeout(function() {
+    t.style.opacity = '0'; t.style.transform = 'translateY(8px)'; t.style.transition = '0.2s';
+    setTimeout(function() { t.remove(); }, 220);
+  }, duration);
+}
+
+/* OTP LOGIC */
+function sendOTP() {
+  var ph = document.getElementById('phoneInput').value.trim();
+  if (ph.length < 10) { showToast('Enter a valid 10-digit number', '⚠'); return; }
+  document.getElementById('phoneDisplay').textContent = ph;
+  document.getElementById('stepPhone').style.display = 'none';
+  document.getElementById('stepOTP').style.display = 'block';
+  clearBoxes();
+  setTimeout(function() { document.getElementById('box1').focus(); }, 60);
+  showToast('OTP sent! Demo code: 1 2 3 4', '📱', 4000);
+}
+
+function clearBoxes() {
+  ['box1','box2','box3','box4'].forEach(function(id) {
+    var el = document.getElementById(id); el.value = ''; el.className = 'otpbox';
+  });
+}
+
+function otpInput(el, nextId) {
+  el.value = el.value.replace(/\D/g, '').slice(-1);
+  if (el.value) el.classList.add('filled'); else el.classList.remove('filled');
+  if (el.value && nextId) document.getElementById(nextId).focus();
+  var allFilled = ['box1','box2','box3','box4'].every(function(id) { return document.getElementById(id).value; });
+  if (allFilled) { setTimeout(verifyOTP, 280); }
+}
+
+function otpKey(e, el, prevId, nextId) {
+  if (e.key === 'Backspace') {
+    if (el.value === '') { if (prevId) { var p = document.getElementById(prevId); p.value=''; p.classList.remove('filled'); p.focus(); } }
+    else { el.value=''; el.classList.remove('filled'); }
+    e.preventDefault();
+  }
+  if (e.key === 'ArrowLeft'  && prevId) { document.getElementById(prevId).focus(); e.preventDefault(); }
+  if (e.key === 'ArrowRight' && nextId) { document.getElementById(nextId).focus(); e.preventDefault(); }
+  if (e.key === 'Enter') { verifyOTP(); }
+}
+
+document.addEventListener('paste', function(e) {
+  var active = document.activeElement;
+  var validIds = ['box1','box2','box3','box4'];
+  if (!active || validIds.indexOf(active.id) === -1) return;
+  e.preventDefault();
+  var text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'').slice(0,4);
+  for (var i = 0; i < validIds.length; i++) {
+    if (text[i]) { var el = document.getElementById(validIds[i]); el.value = text[i]; el.classList.add('filled'); }
+  }
+  document.getElementById(validIds[Math.min(text.length,3)]).focus();
+  if (text.length === 4) { setTimeout(verifyOTP, 280); }
+});
+
+function verifyOTP() {
+  var ids = ['box1','box2','box3','box4'];
+  var otp = ids.map(function(id) { return document.getElementById(id).value; }).join('');
+  if (otp.length < 4) { showToast('Enter all 4 digits', '⚠'); return; }
+  if (otp === '1234') {
+    ids.forEach(function(id) { document.getElementById(id).className = 'otpbox right'; });
+    showToast('Welcome to RideFair! 🎉', '✅');
+    setTimeout(function() { goTo('home'); startHomeCars(); }, 700);
+  } else {
+    ids.forEach(function(id) { document.getElementById(id).className = 'otpbox wrong'; });
+    showToast('Wrong OTP — demo code is 1 2 3 4', '❌', 3500);
+    setTimeout(function() { clearBoxes(); document.getElementById('box1').focus(); }, 900);
+  }
+}
+
+function resendOTP() {
+  clearBoxes();
+  setTimeout(function() { document.getElementById('box1').focus(); }, 60);
+  showToast('OTP resent! Demo code: 1 2 3 4', '📱', 4000);
+}
+
+/* HOME CARS */
+function startHomeCars() {
+  var carsData = [
+    { id:'car1', pts:[{l:10,t:20},{l:22,t:15},{l:34,t:21},{l:46,t:17}] },
+    { id:'car2', pts:[{l:60,t:45},{l:50,t:40},{l:40,t:35},{l:30,t:31}] },
+    { id:'car3', pts:[{l:75,t:14},{l:65,t:19},{l:72,t:27},{l:78,t:21}] }
+  ];
+  carsData.forEach(function(c) {
+    var idx = 0;
+    setInterval(function() {
+      var el = document.getElementById(c.id);
+      if (!el) return;
+      var p = c.pts[idx % c.pts.length]; idx++;
+      el.style.left = p.l + '%'; el.style.top = p.t + '%';
+    }, 1400);
+  });
+}
+
+/* PLACES */
+var PLACES = [
+  { n:'MG Road, Bengaluru',        a:'Central Bengaluru',         ic:'🏛',  km:5.2  },
+  { n:'Bangalore Airport',          a:'Kempegowda International',  ic:'✈',   km:42   },
+  { n:'Whitefield, Bengaluru',      a:'IT Hub, East Bengaluru',    ic:'💼',  km:18   },
+  { n:'Indiranagar, Bengaluru',     a:'12th Main Road',            ic:'🍕',  km:5.8  },
+  { n:'Forum Mall, Koramangala',    a:'Koramangala',               ic:'🛍',  km:2.1  },
+  { n:'HSR Layout, Bengaluru',      a:'Sector 6',                  ic:'🏠',  km:4.8  },
+  { n:'JP Nagar, Bengaluru',        a:'8th Phase',                 ic:'🌳',  km:8.4  },
+  { n:'BTM Layout, Bengaluru',      a:'2nd Stage',                 ic:'🏘',  km:3.6  },
+  { n:'Electronic City, Bengaluru', a:'Phase 1, South Bengaluru',  ic:'🔧',  km:14   },
+  { n:'Jayanagar, Bengaluru',       a:'4th Block',                 ic:'🎭',  km:6.2  }
+];
+
+function renderResults(list) {
+  var el = document.getElementById('resultsList');
+  if (!list.length) {
+    el.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text3);font-size:13px;font-weight:500;">No results found</div>';
+    return;
+  }
+  el.innerHTML = list.map(function(p) {
+    return '<div class="resultitem" onclick="pickDest(\'' + p.n.replace(/'/g,"\\'") + '\',' + p.km + ')">'
+         + '<div class="resulticon">' + p.ic + '</div>'
+         + '<div><div class="resultname">' + p.n + '</div><div class="resultaddr">' + p.a + '</div></div>'
+         + '</div>';
+  }).join('');
+}
+
+renderResults(PLACES);
+
+function filterPlaces(q) {
+  if (!q || q.length < 2) { renderResults(PLACES); return; }
+  q = q.toLowerCase();
+  renderResults(PLACES.filter(function(p) { return p.n.toLowerCase().indexOf(q) !== -1 || p.a.toLowerCase().indexOf(q) !== -1; }));
+}
+
+/* PRICING */
+var APP = { dest:'', km:0, type:'std', fareStd:0, farePool:0, fareSched:0 };
+
+function calcFare(km, type) {
+  var raw = 20 + Math.round(km * 15);
+  var std = Math.max(30, raw);
+  if (type === 'pool')  return { f: Math.max(30, Math.round(std * 0.6)), mod: -Math.round(std * 0.4), modLabel:'Pool discount (-40%)', minApplied:false };
+  if (type === 'sched') return { f: Math.max(30, Math.round(std * 0.9)), mod: -Math.round(std * 0.1), modLabel:'Early booking (-10%)', minApplied:false };
+  return { f: std, mod:0, modLabel:'', distCharge: Math.round(km*15), minApplied: raw < 30 };
+}
+
+function updateFareUI(type) {
+  APP.type = type;
+  var f = calcFare(APP.km, type);
+  var dc = Math.round(APP.km * 15);
+  document.getElementById('distLabel').textContent    = 'Distance (' + APP.km.toFixed(1) + ' km × Rs.15)';
+  document.getElementById('fareDistVal').textContent  = 'Rs.' + dc;
+  document.getElementById('fareTotalVal').textContent = 'Rs.' + f.f;
+  document.getElementById('etaFare').textContent      = f.f;
+  document.getElementById('trackFare').textContent    = 'Rs.' + f.f;
+  document.getElementById('findFare').textContent     = 'Rs.' + f.f + ' estimated';
+  var modRow = document.getElementById('modifierRow');
+  if (f.mod !== 0) {
+    modRow.style.display = 'flex';
+    document.getElementById('modLabel').textContent = f.modLabel;
+    document.getElementById('modVal').textContent   = 'Rs.' + f.mod;
+  } else { modRow.style.display = 'none'; }
+  document.getElementById('minFareNote').style.display = (type==='std' && f.minApplied) ? 'block' : 'none';
+}
+
+function selectType(el, type) {
+  document.querySelectorAll('.ridetype').forEach(function(r) { r.classList.remove('selected'); });
+  el.classList.add('selected');
+  updateFareUI(type);
+}
+
+function pickDest(name, km) {
+  APP.dest = name; APP.km = km;
+  var short = name.split(',')[0];
+  APP.fareStd   = calcFare(km,'std').f;
+  APP.farePool  = calcFare(km,'pool').f;
+  APP.fareSched = calcFare(km,'sched').f;
+  document.getElementById('priceStd').textContent   = 'Rs.' + APP.fareStd;
+  document.getElementById('pricePool').textContent  = 'Rs.' + APP.farePool;
+  document.getElementById('priceSched').textContent = 'Rs.' + APP.fareSched;
+  document.getElementById('poolSave').textContent   = 'Save Rs.' + (APP.fareStd - APP.farePool);
+  document.getElementById('routeFrom').textContent  = 'Koramangala';
+  document.getElementById('routeTo').textContent    = short;
+  document.getElementById('routeKm').textContent    = km.toFixed(1) + ' km';
+  document.getElementById('routeKmLabel').textContent = km.toFixed(1) + ' km';
+  document.getElementById('progFrom').textContent   = 'Koramangala';
+  document.getElementById('progTo').textContent     = short;
+  document.getElementById('findRoute').textContent  = 'Koramangala > ' + short;
+  document.querySelectorAll('.ridetype').forEach(function(r) { r.classList.remove('selected'); });
+  document.querySelector('.ridetype').classList.add('selected');
+  updateFareUI('std');
+  goTo('options');
+}
+
+/* BOOKING */
+function confirmRide() {
+  goTo('finding');
+  var msgs = ['Matching nearby drivers…','Found 3 drivers in your area…','Sending request to Ravi Kumar…','Driver accepted!'];
+  var i = 0;
+  var iv = setInterval(function() {
+    if (i < msgs.length) { document.getElementById('findSub').textContent = msgs[i++]; }
+    else { clearInterval(iv); setTimeout(function() { goTo('driverfound'); startETACountdown(); }, 350); }
+  }, 850);
+}
+
+function startETACountdown() {
+  var eta = 4, dist = 1.2;
+  var iv = setInterval(function() {
+    eta  = Math.max(0, eta - 1);
+    dist = Math.max(0, parseFloat((dist - 0.3).toFixed(1)));
+    document.getElementById('etaMin').textContent  = eta;
+    document.getElementById('etaMin2').textContent = eta;
+    document.getElementById('etaDist').textContent = dist;
+    if (eta === 0) { clearInterval(iv); showToast('Ravi Kumar has arrived!', '📍'); }
+  }, 1000);
+}
+
+/* TRACKING */
+var trackInterval = null, deviationTimer = null, trackIdx = 0;
+var trackProg = 28, trackETA = 12, trackKM = 3.2;
+var pathPoints = [[180, 268]];
+
+var TRACK_POSITIONS = [
+  {l:47,t:84},{l:46,t:78},{l:47,t:72},{l:49,t:66},
+  {l:51,t:60},{l:53,t:54},{l:55,t:48},{l:57,t:42},
+  {l:59,t:36},{l:61,t:30},{l:63,t:26},{l:65,t:22},
+  {l:67,t:18},{l:69,t:15},{l:71,t:12}
+];
+
+function startTracking() {
+  trackIdx = 0; trackProg = 28; trackETA = 12; trackKM = 3.2;
+  pathPoints = [[180,268]];
+  document.getElementById('actualPath').setAttribute('d','M180 268');
+  document.getElementById('actualPath').setAttribute('stroke','var(--green)');
+  document.getElementById('trackCar').style.filter = '';
+  document.getElementById('devBanner').classList.remove('show');
+  document.getElementById('hudStatus').textContent = '● Ride in progress';
+  document.getElementById('hudStatus').style.color = 'var(--green)';
+  goTo('tracking');
+  showToast('Ride started! Route monitoring active', '✅', 3200);
+  if (trackInterval) clearInterval(trackInterval);
+  trackInterval = setInterval(function() {
+    if (trackIdx < TRACK_POSITIONS.length) {
+      var p = TRACK_POSITIONS[trackIdx++];
+      document.getElementById('trackCar').style.left = p.l + '%';
+      document.getElementById('trackCar').style.top  = p.t + '%';
+      var x = Math.round(p.l/100*360), y = Math.round(p.t/100*300);
+      pathPoints.push([x,y]);
+      var d = pathPoints.map(function(pt,i){ return (i===0?'M':'L')+pt[0]+' '+pt[1]; }).join(' ');
+      document.getElementById('actualPath').setAttribute('d',d);
+    }
+    trackProg = Math.min(96, trackProg + 3.5);
+    trackETA  = Math.max(0, Math.round(trackETA - 0.5));
+    trackKM   = Math.max(0, parseFloat((trackKM - 0.15).toFixed(1)));
+    var spd = 20 + Math.round(Math.random()*18);
+    document.getElementById('progressFill').style.width = trackProg + '%';
+    document.getElementById('trackETA').textContent = trackETA;
+    document.getElementById('trackKM').textContent  = trackKM.toFixed(1);
+    document.getElementById('trackSpd').textContent = spd;
+    if (trackETA === 0) {
+      clearInterval(trackInterval);
+      document.getElementById('hudStatus').textContent = 'Arrived! 🎉';
+      document.getElementById('hudStatus').style.color = 'var(--amber)';
+      showToast('You have arrived!', '🏁', 4000);
+    }
+  }, 1000);
+  if (deviationTimer) clearTimeout(deviationTimer);
+  deviationTimer = setTimeout(function() {
+    document.getElementById('devBanner').classList.add('show');
+    document.getElementById('hudStatus').textContent = '⚠ Deviation Detected';
+    document.getElementById('hudStatus').style.color = 'var(--red)';
+    document.getElementById('trackCar').style.filter = 'hue-rotate(130deg)';
+    document.getElementById('actualPath').setAttribute('stroke','var(--red)');
+    showToast('Driver deviated 142m from route!', '📰', 4000);
+  }, 8000);
+}
+
+function dismissDeviation() {
+  document.getElementById('devBanner').classList.remove('show');
+  document.getElementById('hudStatus').textContent = '● Monitoring...';
+  document.getElementById('hudStatus').style.color = 'var(--green)';
+  document.getElementById('trackCar').style.filter = '';
+  document.getElementById('actualPath').setAttribute('stroke','var(--green)');
+}
+
+/* SOS */
+var sosTimer = null;
+
+function startSOS() {
+  document.querySelector('.sosholdbutton').style.background = '#b91c1c';
+  sosTimer = setTimeout(function() {
+    document.querySelector('.sosholdbutton').style.background = 'var(--red)';
+    showToast('SOS SENT — Contacts notified!', '🚨', 5000);
+    showToast('Bengaluru Police alerted', '🚔', 5600);
+    showToast('Location shared with Rahul and Priya', '📍', 6200);
+  }, 3000);
+}
+
+function stopSOS() {
+  clearTimeout(sosTimer);
+  document.querySelector('.sosholdbutton').style.background = 'var(--red)';
+}
+
+</script>
+</body>
+</html>
